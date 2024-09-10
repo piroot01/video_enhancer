@@ -6,6 +6,7 @@
 #include <queue>
 #include <string>
 #include <algorithm>
+#include <unordered_set>
 
 using namespace video_enhancer;
 
@@ -17,6 +18,11 @@ detail::image::image(const std::string& name) :
 bool detail::image::operator<(const image& rhs) const noexcept
 {
     return this->name < rhs.name;
+}
+
+bool detail::image::operator==(const image& rhs) const noexcept
+{
+    return this->name == rhs.name;
 }
 
 resource_holder::resource_holder(const std::filesystem::path& resource_path) :
@@ -71,29 +77,73 @@ void resource_holder::load_images(const std::string& dir)
     }
 }
 
-std::queue<detail::image> resource_holder::get_images() const noexcept
+std::queue<detail::image> resource_holder::get_images() noexcept
 {
+    this->sort(this->images_);
+
     return this->images_;
 }
 
-void resource_holder::sort()
+std::queue<detail::image> resource_holder::get_unfinished_images(const std::filesystem::path& path) noexcept
+{
+    if (!std::filesystem::exists(path))
+    {
+        return this->get_images();
+    }
+
+    std::unordered_set<detail::image> finished_images;
+
+    for (const auto& entry : std::filesystem::directory_iterator(path))
+    {
+        if (entry.is_regular_file() && entry.exists() && entry.path().extension() == ".png")
+        {
+            finished_images.insert(entry.path().filename().string());
+        }
+    }
+
+    // load the images into set
+    std::unordered_set<detail::image> images;
+    std::queue<detail::image> temp_queue = this->images_;
+
+    while (!temp_queue.empty())
+    {
+        images.insert(temp_queue.front());
+        temp_queue.pop();
+    }
+
+    std::queue<detail::image> unique_queue;
+
+    for (const auto& img : images)
+    {
+        if (finished_images.find(img) == finished_images.end())
+        {
+            unique_queue.push(img);
+        }
+    }
+
+    this->sort(unique_queue);
+
+    return unique_queue;
+}
+
+void resource_holder::sort(std::queue<detail::image>& queue)
 {
     std::vector<detail::image> temp;
 
-    temp.reserve(this->images_.size());
+    temp.reserve(queue.size());
 
-    while(!this->images_.empty())
+    while(!queue.empty())
     {
-        temp.push_back(this->images_.front());
+        temp.push_back(queue.front());
 
-        this->images_.pop();
+        queue.pop();
     }
 
     std::sort(temp.begin(),temp.end());
 
     for(std::size_t i = 0, size = temp.size(); i < size; ++i)
     {
-       this->images_.push(temp[i]);
+       queue.push(temp[i]);
     }
 }
 

@@ -15,6 +15,8 @@ namespace video_enhancer
             std::string name;
 
             bool operator<(const image& rhs) const noexcept;
+
+            bool operator==(const image& rhs) const noexcept;
         };
 
     } // namespace detail
@@ -30,10 +32,12 @@ namespace video_enhancer
     public:
         void load_images(const std::string& dir);
 
-        std::queue<detail::image> get_images() const noexcept;
+        std::queue<detail::image> get_images() noexcept;
 
-    public:
-        void sort();
+        std::queue<detail::image> get_unfinished_images(const std::filesystem::path& path) noexcept;
+
+    protected:
+        static void sort(std::queue<detail::image>& queue);
 
     // debugging reasons
     public:
@@ -46,5 +50,15 @@ namespace video_enhancer
 
     };
 } // namespace video_enhancer
+
+template <>
+struct std::hash<video_enhancer::detail::image> 
+{
+    inline std::size_t operator()(const video_enhancer::detail::image& image) const noexcept
+    {
+        return std::hash<std::string>()(image.name);
+    }
+
+};
 
 #endif

@@ -20,10 +20,10 @@
 auto main() -> std::int32_t
 {
     // relative or absolute path to the video
-    const std::string input_video_path = "../resources/kizu_02.mkv";
+    const std::string input_video_path = "../resources/test.mkv";
 
     // name of the working dir
-    const std::string temp_dir = "temp";
+    const std::string temp_dir = "/home/piroot/tmp/kizu_2/temp";
 
     // create resource holder
     video_enhancer::resource_holder resource_holder(input_video_path);
@@ -51,9 +51,7 @@ auto main() -> std::int32_t
 
         resource_holder.load_images(temp_dir);
 
-        resource_holder.sort();
-
-        auto images = resource_holder.get_images();
+        auto images = resource_holder.get_unfinished_images(enhanced_images_dir);
 
         auto future = gpu_holder.async_execute(images);
 
