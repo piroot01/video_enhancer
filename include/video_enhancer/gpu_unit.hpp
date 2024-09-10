@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <filesystem>
+#include <mutex>
 
 namespace video_enhancer
 {
@@ -12,11 +13,17 @@ namespace video_enhancer
         gpu_unit(const std::uint32_t id);
 
     public:
-        void execute_image(const std::filesystem::path& input, const std::filesystem::path& output);
+        void set_output_dir(const std::filesystem::path& output_dir);
+
+    public:
+        void execute(const std::filesystem::path& input);
 
     private:
         const std::uint32_t id_;
 
+        std::filesystem::path output_dir_ = {};
+
+        mutable std::mutex cout_mutex_;
     };
 
 } // namespace video_enhancer
