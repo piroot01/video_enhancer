@@ -3,8 +3,11 @@
 #include <cstdlib>
 #include <exception>
 #include <future>
+#include <iomanip>
+#include <ios>
 #include <memory>
 #include <mutex>
+#include <ostream>
 #include <shared_mutex>
 #include <string>
 #include <iostream>
@@ -13,6 +16,8 @@
 #include "gpu_unit.hpp"
 #include "gpu_holder.hpp"
 #include "resource_holder.hpp"
+
+#include "progressbar.hpp"
 
 auto main() -> std::int32_t
 {
@@ -61,12 +66,42 @@ auto main() -> std::int32_t
 
         auto images = resource_holder.get_images();
 
+        progressbar bar(images.size());
+
         auto future = gpu_holder.async_execute(images);
 
-        while (true)
+        const std::size_t image_count = images.size();
+
+        std::size_t last_image_count = image_count;
+
+        auto start_time = std::chrono::high_resolution_clock::now();
+
+        auto refresh_period = std::chrono::milliseconds(100);
+
+        double estimated_time_remaining = 0;
+
+        while (images.size() > 0)
         {
-            std::cout << images.size() << '\n';
-            std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+            if (last_image_count != images.size())
+            {
+                last_image_count = images.size();
+
+                std::size_t processed_count = image_count - images.size();
+
+                // elapsed time
+                auto now = std::chrono::high_resolution_clock::now();
+                std::chrono::duration<double> elapsed = now - start_time;
+
+                double progress = static_cast<double>(processed_count) / image_count;
+                double estimated_total_time = elapsed.count() / progress;
+                estimated_time_remaining = estimated_total_time - elapsed.count();
+            }
+
+            estimated_time_remaining -= refresh_period.count() / 1000.0;
+
+            std::cout << "\r[" << 100 * (1 - images.size() / static_cast<double>(image_count)) << " %]: Processed " << image_count - images.size() << " out of " << image_count << " images. ETA: " << std::fixed << std::setprecision(2) << ((estimated_time_remaining > 0) ? estimated_time_remaining : 0) << " s." << std::flush;
+
+            std::this_thread::sleep_for(std::chrono::milliseconds(refresh_period));
         }
 
         future.wait();

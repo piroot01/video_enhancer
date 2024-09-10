@@ -1,3 +1,4 @@
+#include <chrono>
 #include <cstdint>
 #include <cstdlib>
 #include <filesystem>
@@ -29,13 +30,13 @@ void gpu_unit::execute(const std::filesystem::path& input)
     const std::string output = this->output_dir_.string() + "/" + input.filename().string();
 
     const std::string output_file = "/dev/null";
-
+/*
     {
         std::lock_guard guard(::cout_mutex);
 
         std::cout << "[gpu id " << this->id_ << "]: Enhancing image " << input.filename().string() << ".\n";
     }
-
+*/
     const std::string command = detail::enhancer_path +
         " -n " + detail::model_name +
         " -f " + "png" +
@@ -44,5 +45,6 @@ void gpu_unit::execute(const std::filesystem::path& input)
         " -g " + std::to_string(this->id_) +
         " &> " + output_file;
 
-    std::system(command.c_str());
+    //std::system(command.c_str());
+    std::this_thread::sleep_for(std::chrono::milliseconds(5000));
 }
