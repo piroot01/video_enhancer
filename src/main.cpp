@@ -17,24 +17,13 @@
 #include "gpu_holder.hpp"
 #include "resource_holder.hpp"
 
-#include "progressbar.hpp"
-
 auto main() -> std::int32_t
 {
     // relative or absolute path to the video
-    const std::string input_video_path = "../resources/test.mkv";
+    const std::string input_video_path = "../resources/kizu_02.mkv";
 
     // name of the working dir
     const std::string temp_dir = "temp";
-
-    // audio file
-    const std::string audio_dir = temp_dir + "/audio";
-
-    // audio file
-    const std::string subs_dir = temp_dir + "/subs";
-
-    // name of the enhanced video
-    const std::string output_video_name = "output.mkv"; 
 
     // create resource holder
     video_enhancer::resource_holder resource_holder(input_video_path);
@@ -65,8 +54,6 @@ auto main() -> std::int32_t
         resource_holder.sort();
 
         auto images = resource_holder.get_images();
-
-        progressbar bar(images.size());
 
         auto future = gpu_holder.async_execute(images);
 

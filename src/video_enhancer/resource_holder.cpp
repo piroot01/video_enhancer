@@ -52,7 +52,7 @@ bool resource_holder::split_video(const std::filesystem::path& path) const
         throw std::filesystem::filesystem_error::exception();
     }
 
-    std::string command = "ffmpeg -i " + this->resource_path_.string() + " -vsync 0 " + path.string() + "/" + detail::file_name_format + ".png &> /dev/null";
+    std::string command = "ffmpeg -i " + this->resource_path_.string() + " -vsync 0 " + path.string() + "/" + detail::file_name_format + ".png";
 
     // execute the command
     std::system(command.c_str());

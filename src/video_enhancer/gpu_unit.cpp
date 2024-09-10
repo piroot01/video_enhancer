@@ -45,6 +45,6 @@ void gpu_unit::execute(const std::filesystem::path& input)
         " -g " + std::to_string(this->id_) +
         " &> " + output_file;
 
-    //std::system(command.c_str());
-    std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+    std::system(command.c_str());
+    //std::this_thread::sleep_for(std::chrono::milliseconds(5000));
 }
