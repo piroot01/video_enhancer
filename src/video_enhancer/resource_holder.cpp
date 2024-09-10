@@ -24,11 +24,11 @@ resource_holder::resource_holder(const std::filesystem::path& resource_path) :
 {
 }
 
-bool resource_holder::split_video(const std::string& dir) const
+bool resource_holder::split_video(const std::filesystem::path& path) const
 {
-    if (std::filesystem::exists(dir))
+    if (std::filesystem::exists(path))
     {
-        std::cout << "The output dir already exists. Rewrite? [y/N]";
+        std::cout << "The dir for split_video  already exists. Rewrite? [y/N]";
 
         std::string response = "";
 
@@ -36,7 +36,7 @@ bool resource_holder::split_video(const std::string& dir) const
 
         if (response == "y" || response == "Y")
         {
-            if (!std::filesystem::remove_all(dir))
+            if (!std::filesystem::remove_all(path))
             {
                 throw std::filesystem::filesystem_error::exception();
             }
@@ -47,12 +47,12 @@ bool resource_holder::split_video(const std::string& dir) const
         }
     }
 
-    if (!std::filesystem::create_directory(dir))
+    if (!std::filesystem::create_directory(path))
     {
         throw std::filesystem::filesystem_error::exception();
     }
 
-    std::string command = "ffmpeg -i " + this->resource_path_.string() + " -vsync 0 " + dir + "/" + detail::file_name_format + ".png";
+    std::string command = "ffmpeg -i " + this->resource_path_.string() + " -vsync 0 " + path.string() + "/" + detail::file_name_format + ".png";
 
     // execute the command
     std::system(command.c_str());

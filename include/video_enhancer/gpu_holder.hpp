@@ -3,10 +3,13 @@
 
 #include <filesystem>
 #include <memory>
+#include <type_traits>
 #include <utility>
 #include <vector>
 #include <thread>
 #include <mutex>
+#include <future>
+#include <functional>
 
 #include "gpu_unit.hpp"
 #include "resource_holder.hpp"
@@ -25,23 +28,29 @@ namespace video_enhancer
 
     public:
         template<class Queue>
+        inline auto async_execute(Queue&& images) -> std::future<void>
+        {
+            auto task = std::bind(&gpu_holder::execute<Queue>, this, std::placeholders::_1);
+
+            return std::async(std::launch::async, task, std::ref(images));
+        }
+
+        template<class Queue>
         inline void execute(Queue&& images)
         {
-            std::mutex queue_mutex;
-
             std::vector<std::thread> workers;
 
             // for one gpu new thread is spawned
             for (const auto& unit : this->units_)
             {
-                auto worker_lambda = [this, &unit, &images, &queue_mutex] () mutable
+                auto worker_lambda = [this, &unit, &images] () mutable
                 {
                     detail::image image("");
 
                     while (!images.empty())
                     {
                         {
-                            std::lock_guard guard(queue_mutex);
+                            std::lock_guard guard(this->mutex_);
 
                             image = images.front();
 
@@ -66,6 +75,7 @@ namespace video_enhancer
 
         std::filesystem::path resource_path_ = {};
 
+        mutable std::mutex mutex_;
     };
 
 } // namespace video_enhancer

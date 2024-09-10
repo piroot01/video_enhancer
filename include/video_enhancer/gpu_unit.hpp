@@ -23,7 +23,6 @@ namespace video_enhancer
 
         std::filesystem::path output_dir_ = {};
 
-        mutable std::mutex cout_mutex_;
     };
 
 } // namespace video_enhancer

@@ -25,8 +25,9 @@ namespace video_enhancer
         resource_holder(const std::filesystem::path& resource_path);
 
     public:
-        bool split_video(const std::string& dir) const;
+        bool split_video(const std::filesystem::path& path) const;
 
+    public:
         void load_images(const std::string& dir);
 
         std::queue<detail::image> get_images() const noexcept;

@@ -12,6 +12,8 @@
 
 using namespace video_enhancer;
 
+static std::mutex cout_mutex;
+
 gpu_unit::gpu_unit(const std::uint32_t id) :
     id_(id)
 {
@@ -29,7 +31,7 @@ void gpu_unit::execute(const std::filesystem::path& input)
     const std::string output_file = "/dev/null";
 
     {
-        std::lock_guard guard(this->cout_mutex_);
+        std::lock_guard guard(::cout_mutex);
 
         std::cout << "[gpu id " << this->id_ << "]: Enhancing image " << input.filename().string() << ".\n";
     }
@@ -42,5 +44,5 @@ void gpu_unit::execute(const std::filesystem::path& input)
         " -g " + std::to_string(this->id_) +
         " &> " + output_file;
 
-    //std::system(command.c_str());
+    std::system(command.c_str());
 }

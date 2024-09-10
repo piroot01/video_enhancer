@@ -1,10 +1,14 @@
+#include <chrono>
 #include <cstdint>
 #include <cstdlib>
 #include <exception>
+#include <future>
 #include <memory>
+#include <mutex>
 #include <shared_mutex>
 #include <string>
 #include <iostream>
+#include <thread>
 
 #include "gpu_unit.hpp"
 #include "gpu_holder.hpp"
@@ -18,6 +22,12 @@ auto main() -> std::int32_t
     // name of the working dir
     const std::string temp_dir = "temp";
 
+    // audio file
+    const std::string audio_dir = temp_dir + "/audio";
+
+    // audio file
+    const std::string subs_dir = temp_dir + "/subs";
+
     // name of the enhanced video
     const std::string output_video_name = "output.mkv"; 
 
@@ -26,12 +36,7 @@ auto main() -> std::int32_t
 
     try
     {
-        /*
-        if (!resource_holder.split_video(temp_dir))
-        {
-            return 1;
-        }
-        */
+        resource_holder.split_video(temp_dir);
 
         video_enhancer::gpu_holder gpu_holder;
 
@@ -45,23 +50,26 @@ auto main() -> std::int32_t
 
         // directory where the enhanced pictures will be stored
         gpu0_ptr->set_output_dir(enhanced_images_dir);
+        gpu1_ptr->set_output_dir(enhanced_images_dir);
 
         gpu_holder.register_gpu(gpu0_ptr);
         gpu_holder.register_gpu(gpu1_ptr);
-
-        //gpu0_ptr->execute("temp/01.png");
 
         resource_holder.load_images(temp_dir);
 
         resource_holder.sort();
 
-        gpu_holder.execute(resource_holder.get_images());
+        auto images = resource_holder.get_images();
 
-/*
-    gpu0.process_images();
+        auto future = gpu_holder.async_execute(images);
 
-    resource_holder.glue_video(enhanced_images_dir);
-*/
+        while (true)
+        {
+            std::cout << images.size() << '\n';
+            std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+        }
+
+        future.wait();
     }
     catch (std::exception& e)
     {
