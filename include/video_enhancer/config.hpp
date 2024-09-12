@@ -9,7 +9,7 @@ namespace video_enhancer::detail
 
     const static std::string enhancer_path = "/usr/bin/realesrgan-ncnn-vulkan";
 
-    const static std::string model_name = "realesrgan-x4plus-anime";
+    const static std::string model_name = "realesr-animevideov3";
 
 } // namespace video_enhancer
 

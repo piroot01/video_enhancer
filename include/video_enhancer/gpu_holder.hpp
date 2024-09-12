@@ -31,12 +31,11 @@ namespace video_enhancer
         template<class Queue>
         inline auto async_execute(Queue&& images) -> std::future<void>
         {
-            return std::async(std::launch::async, [this, images = std::move(images)]() mutable
-            {
-                this->execute(images);
-            });
+            auto task = std::bind(&gpu_holder::execute<Queue>, this, std::placeholders::_1);
+
+            return std::async(std::launch::async, task, std::ref(images));
         }
-/*
+
         template<class Queue>
         inline void execute(Queue&& images)
         {
@@ -63,7 +62,7 @@ namespace video_enhancer
                     }
                 };
 
-                workers.emplace_back(worker_lambda);
+                workers.emplace_back(std::move(worker_lambda));
             }
 
             for (auto& worker : workers)
@@ -71,7 +70,8 @@ namespace video_enhancer
                 worker.join();
             }
         }
-*/
+
+/*
         template <class Queue>
         inline void execute(Queue&& images)
         {
@@ -80,33 +80,33 @@ namespace video_enhancer
             std::vector<std::future<void>> futures(num_units);
 
             // spawn threads for each unit
-            for (size_t i = 0; i < num_units; ++i)
+            for (std::size_t i = 0; i < num_units; ++i)
             {
-                futures[i] = std::async(std::launch::async, [&] ()
+                futures[i] = std::async(std::launch::async, [this, &images, i] ()
                 {
                     detail::image image("");
 
                     while (!images.empty())
                     {
-                        std::unique_lock<std::mutex> lock(this->mutex_);
+                        {
+                            std::lock_guard guard(this->mutex_);
 
-                        image = std::move(images.front());
+                            image = std::move(images.front());
 
-                        images.pop();
-
-                        lock.unlock();
+                            images.pop();
+                        }
 
                         this->units_[i]->execute(this->resource_path_.string() + "/" + image.name);
                     }
                 });
             }
-            
+
             for (auto& future : futures)
             {
                 future.wait();
             }
         }
-
+*/
     private:
         std::vector<std::shared_ptr<gpu_unit>> units_;
 

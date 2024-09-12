@@ -1,15 +1,15 @@
-#include <chrono>
 #include <cstdint>
 #include <cstdlib>
 #include <filesystem>
 #include <mutex>
 #include <string>
 #include <iostream>
-#include <thread>
-#include <unistd.h>
+#include <vector>
 
 #include "gpu_unit.hpp"
 #include "config.hpp"
+
+#include <boost/process.hpp>
 
 using namespace video_enhancer;
 
@@ -29,14 +29,33 @@ void gpu_unit::execute(const std::filesystem::path& input)
 {
     const std::string output = this->output_dir_.string() + "/" + input.filename().string();
 
-    const std::string output_file = "/dev/null";
-/*
-    {
-        std::lock_guard guard(::cout_mutex);
+    boost::process::ipstream err_stream;
 
-        std::cout << "[gpu id " << this->id_ << "]: Enhancing image " << input.filename().string() << ".\n";
+    std::vector<std::string> args = {
+        "-n", detail::model_name,
+        "-f", "png",
+        "-i", input.string(),
+        "-o", output,
+        "-g", std::to_string(this->id_)
+    };
+
+    boost::process::child process(detail::enhancer_path, boost::process::args(args), boost::process::std_err > err_stream);
+
+    process.wait();
+
+    if (process.exit_code() != 0)
+    {
+        std::cerr << "The image " << input.string() << " failed to enhance.\n";
     }
-*/
+}
+
+/*
+void gpu_unit::execute(const std::filesystem::path& input)
+{
+    const std::string output = this->output_dir_.string() + "/" + input.filename().string();
+
+    const std::string output_file = "/dev/null";
+
     const std::string command = detail::enhancer_path +
         " -n " + detail::model_name +
         " -f " + "png" +
@@ -46,5 +65,5 @@ void gpu_unit::execute(const std::filesystem::path& input)
         " &> " + output_file;
 
     std::system(command.c_str());
-    //std::this_thread::sleep_for(std::chrono::milliseconds(5000));
 }
+*/
