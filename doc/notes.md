@@ -10,6 +10,8 @@ ffmpeg -i (input) '%04d.bmp'
 
 # combining the frames into video
 
-fmpeg -framerate 23.976 -i %04d.png -c:v libx264 -preset slow -crf 18 -pix_fmt gbrp output_video.mkv
+ffmpeg -framerate 23.976 -i %08d.png -c:v libx264 -preset ultrafast -crf 17 -tune animation -pix_fmt rgb24 output.mkv
 
-ffmpeg -framerate 23.976 -i %04d.png -c:v libx264 -preset (slow|veryslow) -crf (quality) -pix_fmt gbrp output_video.mkv
+# downscaling
+
+magick enlarged.png -resize 3840x1632 -filter Lanczos2Sharp -sharpen 0x0.75 -enhance -colorspace sRGB output.png
