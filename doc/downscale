@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# Loop over all .png files in the current directory
+for file in *.png; do
+  # Run the ImageMagick command for each file
+  magick "$file" -resize 3840x1632 -filter Lanczos2Sharp -sharpen 0x0.75 -enhance -colorspace sRGB "$file"
+  
+  echo "Processed: $file"
+done

@@ -47,6 +47,27 @@ void gpu_unit::execute(const std::filesystem::path& input)
     {
         std::cerr << "The image " << input.string() << " failed to enhance.\n";
     }
+
+    std::vector<std::string> magick_args = {
+        "magick", 
+        output,
+        "-resize", "3840x1632",
+        "-filter", "Lanczos2Sharp",
+        "-sharpen", "0x0.75",
+        "-enhance",
+        "-colorspace", "sRGB",
+        output
+    };
+
+    // Execute the ImageMagick process
+    boost::process::child magick_process(boost::process::search_path("magick"), boost::process::args(magick_args));
+
+    magick_process.wait();
+
+    if (magick_process.exit_code() != 0)
+    {
+        std::cerr << "The ImageMagick resize operation failed for image: " << output << "\n";
+    }
 }
 
 /*
