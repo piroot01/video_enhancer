@@ -49,7 +49,6 @@ void gpu_unit::execute(const std::filesystem::path& input)
     }
 
     std::vector<std::string> magick_args = {
-        "magick", 
         output,
         "-resize", "3840x1632",
         "-filter", "Lanczos2Sharp",
@@ -60,7 +59,7 @@ void gpu_unit::execute(const std::filesystem::path& input)
     };
 
     // Execute the ImageMagick process
-    boost::process::child magick_process(boost::process::search_path("magick"), boost::process::args(magick_args));
+    boost::process::child magick_process("/usr/bin/magick", boost::process::args(magick_args));
 
     magick_process.wait();
 
